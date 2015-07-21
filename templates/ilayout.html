@@ -1,0 +1,124 @@
+{% extends "ibase.html" %}
+{% load staticfiles %}
+{% load compress %}
+{% load promotion_tags %}
+{% load currency_filters %}
+{% load i18n %}
+
+{% block mainstyles %}
+    {% block styles %}
+        {% compress css %}
+            {% if use_less %}
+                <link rel="stylesheet" type="text/less" href="{% static "oscar/less/styles.less" %}" />
+            {% else %}
+                <link rel="stylesheet" type="text/css" href="{% static "oscar/css/styles.css" %}" />
+            {% endif %}
+        {% endcompress %}
+    {% endblock %}
+{% endblock %}
+
+{% block layout %}
+    {# Top-horizontal bar with account, notifictions, dashboard links #}
+    {% include "partials/nav_accounts.html" %}
+
+    {# Site logo/title, mini-basket, browse dropdown and searchbox #}
+    <header class="header container-fluid">
+        <!-- fix page_inner -->
+        <div class="">
+            <div class="row">
+                <!-- fix  Brand -->
+                <div class="col-sm-4 h1">
+                    <a href="{{ homepage_url }}">{% block brand_title %}{{ shop_name }}</a><small> {{ shop_tagline }}</small>{% endblock %}
+                </div>
+
+                <!-- fix Search -->
+                <div class="col-sm-4" style="top:-7px">
+                    <form method="get" action="{% url 'search:search' %}" class="navbar-form navbar-right">
+                        <div class="form-group">
+                            <!-- fix Me 380px -->
+                            {{ search_form.q }}
+                        </div>
+                        <input type="submit" value="{% trans "Search" %}" class="btn btn-default" />
+                    </form>
+                </div>
+
+
+                <!-- fix Basket -->
+                <div class="basket-mini pull-right hidden-xs">
+                    <strong>{% trans "Basket total:" %}</strong>
+                    {% if request.basket.is_tax_known %}
+                        {{ request.basket.total_incl_tax|currency:request.basket.currency }}
+                    {% else %}
+                        {{ request.basket.total_excl_tax|currency:request.basket.currency }}
+                    {% endif %}
+
+                    <span class="btn-group">
+                        <a class="btn btn-default" href="{% url 'basket:summary' %}">{% trans "View basket" %}</a>
+                        <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu pull-right">
+                            <li>{% include "basket/partials/basket_quick.html" %}</li>
+                        </ul>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+        {% block navigation %}
+            {% include "partials/inav_primary.html" %}
+        {% endblock %}
+    </header>
+
+    {# Main content of page - other layout templates may override this block #}
+    {% block content_wrapper %}
+        <div class="container-fluid page">
+            <div class="page_inner">
+                {% block breadcrumbs %}{% endblock %}
+                {% block header %}
+                    <div class="page-header action">
+                        <h1>{% block headertext %}{% endblock %}</h1>
+                    </div>
+                {% endblock %}
+                {% include "partials/alert_messages.html" %}
+                {% block subnavigation %}{% endblock %}
+                <div class="content">
+                    {% block subheader %}{% endblock subheader %}
+
+                    {# Render promotions #}
+                    <div id="promotions">
+                        {% for promotion in promotions_page %}
+                            {% render_promotion promotion %}
+                        {% endfor %}
+                    </div>
+
+                    {# Div exists for AJAX updates to entire content section #}
+                    <div id="content_inner">{% block content %}{% endblock %}</div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+
+    {% include "partials/footer.html" %}
+{% endblock %}
+
+{# Local scripts #}
+{% block scripts %}
+    {{ block.super }}
+    {% compress js %}
+    <!-- Twitter Bootstrap -->
+    <script type="text/javascript" src="{% static "oscar/js/bootstrap3/bootstrap.min.js" %}"></script>
+    <!-- Oscar -->
+    <script src="{% static "oscar/js/oscar/ui.js" %}" type="text/javascript" charset="utf-8"></script>
+    {% endcompress %}
+{% endblock %}
+
+{% block extrascripts %}
+    {% include "partials/extrascripts.html" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block onbodyload %}
+    {{ block.super }}
+    oscar.init();
+{% endblock %}

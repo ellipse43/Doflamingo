@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 """
 Django settings for doflamingo project.
 
@@ -12,6 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from django.utils.translation import ugettext_lazy as _
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -43,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.flatpages',
     'compressor',
     'widget_tweaks'
-] + get_core_apps(['catalogue'])
+] + get_core_apps(['promotions', 'catalogue', 'search', ])
 
 SITE_ID = 1
 
@@ -94,10 +97,17 @@ TEMPLATES = [
 ]
 
 HAYSTACK_CONNECTIONS = {
+    # 'default': {
+    #     'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
+    # },
     'default': {
-        'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
-    },
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    }
 }
+
+# OSCAR_PRODUCT_SEARCH_HANDLER = None
 
 WSGI_APPLICATION = 'doflamingo.wsgi.application'
 
@@ -143,3 +153,36 @@ STATICFILES_DIRS = (
 from oscar.defaults import *
 
 OSCAR_PRODUCTS_PER_PAGE = 20
+OSCAR_DEFAULT_CURRENCY = '￥'
+
+# Search facets
+OSCAR_SEARCH_FACETS = {
+    'fields': OrderedDict([
+        # The key for these dicts will be used when passing facet data
+        # to the template. Same for the 'queries' dict below.
+        ('product_class', {'name': _('Type'), 'field': 'product_class'}),
+        ('rating', {'name': _('Rating'), 'field': 'rating'}),
+        ('price_range', {'name': _('Price range'), 'field': 'price_range'}),
+        # You can specify an 'options' element that will be passed to the
+        # SearchQuerySet.facet() call.  It's hard to get 'missing' to work
+        # correctly though as of Solr's hilarious syntax for selecting
+        # items without a specific facet:
+        # http://wiki.apache.org/solr/SimpleFacetParameters#facet.method
+        # 'options': {'missing': 'true'}
+    ]),
+    'queries': OrderedDict([
+        ('price_range',
+         {
+             'name': _('Price range'),
+             'field': 'price',
+             'queries': [
+                 # This is a list of (name, query) tuples where the name will
+                 # be displayed on the front-end.
+                 (_('0 to 20'), u'[0 TO 20]'),
+                 (_('20 to 40'), u'[20 TO 40]'),
+                 (_('40 to 60'), u'[40 TO 60]'),
+                 (_('60+'), u'[60 TO *]'),
+             ]
+         }),
+    ]),
+}

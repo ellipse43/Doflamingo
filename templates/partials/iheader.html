@@ -1,0 +1,51 @@
+{% load currency_filters %}
+{% load i18n %}
+
+{# Site logo/title, mini-basket, browse dropdown and searchbox #}
+<header class="header container-fluid">
+    <!-- fix page_inner -->
+    <div class="">
+        <div class="row">
+            <!-- fix  Brand -->
+            <div class="col-sm-4 h1">
+                <a href="{{ homepage_url }}">{% block brand_title %}{{ shop_name }}</a><small> {{ shop_tagline }}</small>{% endblock %}
+            </div>
+
+            <!-- fix Search -->
+            <div class="col-sm-4" style="top:-7px">
+                <form method="get" action="{% url 'search:search' %}" class="navbar-form navbar-right">
+                    <div class="form-group">
+                        <!-- fix Me 380px -->
+                        {{ search_form.q }}
+                    </div>
+                    <input type="submit" value="{% trans "Search" %}" class="btn btn-default" />
+                </form>
+            </div>
+
+
+            <!-- fix Basket -->
+            <div class="basket-mini pull-right hidden-xs">
+                <strong>{% trans "Basket total:" %}</strong>
+                {% if request.basket.is_tax_known %}
+                    {{ request.basket.total_incl_tax|currency:request.basket.currency }}
+                {% else %}
+                    {{ request.basket.total_excl_tax|currency:request.basket.currency }}
+                {% endif %}
+
+                <span class="btn-group">
+                    <a class="btn btn-default" href="{% url 'basket:summary' %}">{% trans "View basket" %}</a>
+                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right">
+                        <li>{% include "basket/partials/basket_quick.html" %}</li>
+                    </ul>
+                </span>
+            </div>
+
+        </div>
+    </div>
+    {% block navigation %}
+        {% include "partials/inav_primary.html" %}
+    {% endblock %}
+</header>
