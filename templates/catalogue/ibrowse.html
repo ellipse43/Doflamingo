@@ -34,16 +34,16 @@
             </ul>
         </div>
     {% endif %}
-    {% if has_facets %}
-        <!-- <h4>{% trans "Refine by" %}</h4> -->
+    <!-- {% if has_facets %}
+        <h4>{% trans "Refine by" %}</h4>
         <div class="side_categories">
             {% for field, data in facet_data.items %}
                 {% if data.results %}
-                    {% include 'search/partials/facet.html' with name=data.name items=data.results %}
+                    {% include 'search/partials/ifacet.html' with name=data.name items=data.results %}
                 {% endif %}
             {% endfor %}
         </div>
-    {% endif %}
+    {% endif %} -->
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -57,16 +57,35 @@
 
 {% block content %}
 
-    <form method="get" class="form-horizontal">
+    <div class="">
+        {% if has_facets %}
+            <!-- <h4>{% trans "Refine by" %}</h4> -->
+            <div class="">
+                {% for field, data in facet_data.items %}
+                    {% if data.results %}
+                        {% include 'search/partials/ifacet.html' with name=data.name items=data.results %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <form method="get" class="form-horizontal" style="clear: left">
         {# Render other search params in a hidden block #}
-        <div style="">
+        <div style="display:none">
             {% for value in selected_facets %}
                 <input name="selected_facets" value="{{ value }}" />
             {% endfor %}
             {{ form.q }}
         </div>
 
-        {% if paginator.count %}
+        {% if form %}
+            <hr>
+            {% include "partials/iform_field.html" with field=form.sort_by %}
+        {% endif %}
+
+
+        <!-- {% if paginator.count %}
             {% if paginator.num_pages > 1 %}
                 {% blocktrans with start=page_obj.start_index end=page_obj.end_index count num_results=paginator.count %}
                     <strong>{{ num_results }}</strong> result - showing <strong>{{ start }}</strong> to <strong>{{ end }}</strong>.
@@ -89,7 +108,7 @@
             <p>
                 {% trans "<strong>0</strong> results." %}
             </p>
-        {% endif %}
+        {% endif %} -->
     </form>
 
     {% if products %}

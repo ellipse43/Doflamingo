@@ -1,11 +1,23 @@
+# -*- coding:utf-8 -*-
+
+from __future__ import unicode_literals
+
+import traceback
 from haystack import indexes
 
 from oscar.core.loading import get_model, get_class
+
+from django.conf import settings
 
 # Load default strategy (without a user/request)
 is_solr_supported = get_class('search.features', 'is_solr_supported')
 Selector = get_class('partner.strategy', 'Selector')
 strategy = Selector().strategy()
+
+
+# fix
+ProductAttributeValue = get_model('catalogue', 'ProductAttributeValue')
+AttributeOptionGroup = get_model('catalogue', 'AttributeOptionGroup')
 
 
 class ProductIndex(indexes.SearchIndex, indexes.Indexable):
@@ -24,14 +36,19 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
     num_in_stock = indexes.IntegerField(null=True, faceted=True)
     rating = indexes.IntegerField(null=True, faceted=True)
 
-    # fix
-    price_range = indexes.CharField(null=True, faceted=True)
-
     # Spelling suggestions
     suggestions = indexes.FacetCharField()
 
     date_created = indexes.DateTimeField(model_attr='date_created')
     date_updated = indexes.DateTimeField(model_attr='date_updated')
+
+    # fix -> Extra
+    price_range = indexes.CharField(null=True, faceted=True)
+
+    _vars = vars()
+    for option in AttributeOptionGroup.objects.all():
+        _vars[option.name] = indexes.CharField(null=True, faceted=True)
+    del _vars
 
     def get_model(self):
         return get_model('catalogue', 'Product')
@@ -71,6 +88,23 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
                 return result.price.incl_tax
             return result.price.excl_tax
 
+    def prepare_num_in_stock(self, obj):
+        if obj.is_parent:
+            # Don't return a stock level for parent products
+            return None
+        elif obj.has_stockrecords:
+            result = strategy.fetch_for_product(obj)
+            return result.stockrecord.net_stock_level
+
+    # fix
+    # def prepare_brand(self, obj):
+    #     try:
+    #         attr = obj.attributes.get(code='brand')
+    #         return ProductAttributeValue.objects.get(attribute=attr, product=obj).value.option
+    #     except:
+    # traceback.print_exc()
+    #         return None
+
     def prepare_price_range(self, obj):
         result = None
         if obj.is_parent:
@@ -85,8 +119,7 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
             price = float(result.price.excl_tax)
 
         if price is not None:
-            breakpoints = [0, 20, 40, 60]  # or load them from settings
-            # make sure list is in a "good format"
+            breakpoints = [0, 20, 40, 60]
             breakpoints = sorted(breakpoints)
             if 0 not in breakpoints:
                 breakpoints = [0] + breakpoints
@@ -96,14 +129,6 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
                 if lower <= price <= upper:
                     return '%s-%s' % (lower, upper)
             return '%s+' % upper
-
-    def prepare_num_in_stock(self, obj):
-        if obj.is_parent:
-            # Don't return a stock level for parent products
-            return None
-        elif obj.has_stockrecords:
-            result = strategy.fetch_for_product(obj)
-            return result.stockrecord.net_stock_level
 
     def prepare(self, obj):
         prepared_data = super(ProductIndex, self).prepare(obj)
@@ -115,6 +140,16 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
 
         # Use title to for spelling suggestions
         prepared_data['suggestions'] = prepared_data['text']
+
+        # fix -> Product Options -> error with sqs display
+
+        for attr in obj.attributes.all():
+            if attr.is_option:
+                try:
+                    prepared_data[attr.code] = str(
+                        ProductAttributeValue.objects.get(attribute=attr, product=obj).value.option)
+                except:
+                    traceback.print_exc()
 
         return prepared_data
 
