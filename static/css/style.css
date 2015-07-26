@@ -1,0 +1,33 @@
+.ibreadcrumb {
+  padding: 8px 0px;
+  margin-bottom: 5px;
+  list-style: none;
+}
+
+.ibreadcrumb > li {
+  display: inline-block;
+}
+
+.ibreadcrumb > li + li:before {
+  content: "/\00a0";
+  padding: 0 5px;
+  color: #cccccc;
+}
+
+.ibreadcrumb > .active {
+  color: #777777;
+}
+
+
+/* side_categories */
+
+.iside_categories {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  /*background-color: #f5f5f5;*/
+  border: 1px solid #e3e3e3;
+  /*border-radius: 4px;*/
+  /*-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);*/
+  /*box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);*/
+}

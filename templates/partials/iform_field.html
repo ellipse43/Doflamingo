@@ -11,14 +11,16 @@
     {% annotate_form_field field %}
 
     <!-- fix -->
+    <input id="id_sort_by" name="sort_by" style="display:none" value="relevancy">
     <ul style="padding-left: 0px;">
+
         <li style="display: inline" class="label label-info">排序</li>
-        <li style="display: inline" class="label label-primary">默认</li>
-        <li style="display: inline" class="label label-primary">价格</li>
-        <li style="display: inline" class="label label-primary">最新</li>
+        <li style="display: inline" class="sort label label-primary" value="relevancy">默认</li>
+        <li style="display: inline" class="sort label label-primary" value="price-desc">价格</li>
+        <li style="display: inline" class="sort label label-primary" value="newest">最新</li>
     </ul>
 
-    {% block control_group %}
+    <!-- {% block control_group %}
         <div class="form-group {% if field.errors %}has-error{% endif %}" style="display: none">
 
             {% block label %}
@@ -59,5 +61,5 @@
                 </div>
             {% endblock %}
         </div>
-    {% endblock %}
+    {% endblock %} -->
 {% endif %}

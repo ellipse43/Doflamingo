@@ -15,9 +15,10 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumb">
+    <ul class="ibreadcrumb">
         <li>
-            <a href="{{ homepage_url }}">{% trans "Home" %}</a>
+            <!-- <a href="{{ homepage_url }}">{% trans "Home" %}</a> -->
+            <a href="{{ homepage_url }}">所有商品分类</a>
         </li>
         {% for category in category.get_ancestors %}
             <li>

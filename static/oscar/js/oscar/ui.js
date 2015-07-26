@@ -30,6 +30,12 @@ var oscar = (function(o, $) {
             $('#id_sort_by').on('change', function() {
                 $(this).closest('form').submit();
             });
+
+            $('.sort').on('click', function() {
+                $("#id_sort_by").attr('value', $(this).attr('value'));
+                $(this).closest('form').submit();
+
+            });
         },
         initFacetWidgets: function() {
             // Bind events to facet checkboxes
